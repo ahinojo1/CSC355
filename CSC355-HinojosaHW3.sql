@@ -1,47 +1,82 @@
-DROP TABLE COMPANY;
-
-CREATE TABLE EMPLOYEE(
-    FNAME Varchar,
-    MINIT Char,
-    LNAME Varchar,
-    SSN Number,
-    BDATE Date,
-    ADDRESS Varchar,
-    SEX Char,
-    SALARY Number,
-    SUPER_SSN Number,
-    DNO Number
+--1.
+SELECT Lname, Minit, Fname FROM Employee
+WHERE ((Dno = 5) 
+    AND Ssn IN (SELECT Essn FROM Works_on
+                WHERE ((Pno = 1) AND (Hours > 14))
+                 )
+    );
+    
+    
+--2.
+SELECT Lname, Minit, Fname FROM Employee
+WHERE SSN = (SELECT ESSN FROM Dependent
+    WHERE Dependent_name = Fname
+    AND Relationship = 'Son'
 );
 
-CREATE TABLE DEPARTMENT(
-    DNAME Varchar,
-    DNUMBER Number,
-    MGR_SSN Number,
-    MGR_START_DATE Date
-);
 
-CREATE TABLE DEPT_LOCATIONS(
-    DNUMBER Number,
-    DLOCATION Varchar
-);
+--3.
+SELECT * FROM EMPLOYEE
+WHERE SUPER_SSN = (SELECT SSN FROM EMPLOYEE
+                    WHERE ((FNAME LIKE 'Franklin') AND (MINIT LIKE 'T') AND (LNAME LIKE 'Wong'))
+                    );
+                    
+                    
+--4.
+SELECT PROJECT.PNAME, PROJECT.PNUMBER, WORKS_ON.ESSN, WORKS_ON.HOURS FROM PROJECT
+INNER JOIN WORKS_ON ON PROJECT.PNUMBER = WORKS_ON.PNO;
 
-CREATE TABLE PROJECT(
-    PNAME Varchar,
-    PNUMBER,
-    PLOCATION Varchar,
-    DNUM Number
-);
 
-CREATE TABLE WORKS_ON(
-    ESSN Number,
-    PNO Number,
-    HOURS Number
-);
+--5.
+SELECT * FROM (EMPLOYEE JOIN WORKS_ON ON EMPLOYEE.SSN = WORKS_ON.ESSN);
 
-CREATE TABLE DEPENDENT(
-    ESSN Number,
-    DEPENDENT_NAME Varchar,
-    SEX Char,
-    BDATE Date,
-    RELATIONSHIP Varchar
-);
+
+--6.
+SELECT * FROM EMPLOYEE
+WHERE SSN NOT IN (SELECT ESSN FROM WORKS_ON);
+
+--7.
+SELECT DNO, AVG(SALARY)
+FROM EMPLOYEE
+GROUP BY DNO;
+
+--8.
+SELECT AVG(SALARY) FROM EMPLOYEE
+WHERE sex LIKE 'F';
+
+--9.
+SELECT FNAME, MINIT, LNAME FROM EMPLOYEE
+WHERE  EXISTS(SELECT * FROM DEPARTMENT 
+            WHERE employee.SSN = department.MGR_SSN)
+AND NOT EXISTS(SELECT * FROM DEPENDENT
+            WHERE employee.ssn = dependent.essn);
+
+--10.
+--SELECT AVG(SALARY) FROM EMPLOYEE
+--WHERE exists(SELECT fname,COUNT(*) FROM DEPENDENT
+--       WHERE EMPLOYEE.SSN = DEPENDENT.ESSN)
+--       GROUP BY FNAME
+--       HAVING COUNT(*) = 3;
+
+--11. 
+SELECT DNAME FROM DEPARTMENT
+WHERE (SELECT AVG(SALARY) FROM EMPLOYEE)  > 42000;
+
+--12.
+
+--13.
+SELECT FNAME, MINIT, LNAME FROM EMPLOYEE
+    WHERE SUPER_SSN IN (SELECT SSN FROM EMPLOYEE
+                        WHERE SUPER_SSN = '888665555') ;
+    
+--14.
+--SELECT DNAME FROM DEPARTMENT
+--WHERE 
+
+
+--15.
+SELECT FNAME, LNAME FROM EMPLOYEE
+WHERE ((SALARY < (32000 + ( SELECT MAX(SALARY) FROM EMPLOYEE)) 
+    OR (SALARY > (SELECT MAX (SALARY) FROM EMPLOYEE) - 32000)));
+    
+    select max(salary)from employee 
